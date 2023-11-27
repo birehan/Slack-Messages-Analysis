@@ -200,6 +200,58 @@ def get_user_mentions_from_channel(channel_path):
                  
     return channel_users_metions_count
 
+def get_user_message_count_from_channel(channel_path):
+    '''
+        get messages count of users from a channel        
+    
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+
+    channel_users_message_count = {}
+
+    for msgs in combined:
+        user_id = msgs["user"]
+        channel_users_message_count[user_id] = channel_users_message_count.get(user_id, 0) + 1
+                 
+    return channel_users_message_count
+
+
+def get_user_reaction_count_from_channel(channel_path):
+    '''
+        get metions count of users from a channel        
+    
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.append(json_content)
+    
+
+    channel_users_reactions_count = {}
+
+    for msgs in combined:
+        message = get_messages_dict(msgs)
+
+        for reactions in message["reactions"]:
+            if reactions != None:
+                for users in reactions:
+                    if users != None:
+                        for user_id in users["users"]:
+                            if user_id != None:
+                                channel_users_reactions_count[user_id] = channel_users_reactions_count.get(user_id, 0) + 1
+                 
+    return channel_users_reactions_count
+
 
 
 def convert_2_timestamp(column, data):
