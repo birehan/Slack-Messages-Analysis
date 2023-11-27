@@ -1,15 +1,14 @@
+import datetime
+import glob
+import json
 import os
 import re
 import sys
-import glob
-import json
-import datetime
-from collections import Counter
 from collections import Counter
 
 import pandas as pd
-from matplotlib import pyplot as plt
 import seaborn as sns
+from matplotlib import pyplot as plt
 from nltk.corpus import stopwords
 
 
@@ -68,10 +67,11 @@ def get_messages_dict(msgs):
                 msg_list["msg_id"].append(msg["client_msg_id"])
             except:
                 msg_list["msg_id"].append(None)
-            
             msg_list["text"].append(msg["text"])
+
             msg_list["user"].append(msg["user"])
             msg_list["ts"].append(msg["ts"])
+
             
             if "reactions" in msg:
                 msg_list["reactions"].append(msg["reactions"])
@@ -156,15 +156,49 @@ def process_msgs(msg):
 def get_messages_from_channel(channel_path):
     '''
     get all the messages from a channel        
-    '''
-    channel_json_files = os.listdir(channel_path)
-    channel_msgs = [json.load(open(channel_path + "/" + f)) for f in channel_json_files]
-
-    df = pd.concat([pd.DataFrame(get_messages_dict(msgs)) for msgs in channel_msgs])
-    print(f"Number of messages in channel: {len(df)}")
     
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.append(json_content)
+    
+
+
+    df = pd.concat([pd.DataFrame(get_messages_dict(msgs)) for msgs in combined])
+
+    print(f"Number of messages in channel: {len(df)}")
     return df
 
+
+def get_user_mentions_from_channel(channel_path):
+    '''
+        get metions count of users from a channel        
+    
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.append(json_content)
+    
+
+    channel_users_metions_count = {}
+
+    for msgs in combined:
+        message = get_messages_dict(msgs)
+        for mentions in message["mentions"]:
+            if mentions != None:
+                for user_id in mentions:
+                    if user_id != None:
+                        channel_users_metions_count[user_id] = channel_users_metions_count.get(user_id, 0) + 1
+                 
+    return channel_users_metions_count
 
 
 
