@@ -173,6 +173,27 @@ def get_messages_from_channel(channel_path):
     print(f"Number of messages in channel: {len(df)}")
     return df
 
+def get_messages_replay_timestamp_from_channel(channel_path):
+    '''
+    get all the messages timestamp of message and replay from a channel        
+    
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+    message_time_stamps = []
+    for msgs in combined:
+        if "latest_reply" in msgs:
+            message_time_stamps.append([msgs["ts"], msgs["latest_reply"]])
+
+    return message_time_stamps
+
+
 
 def get_user_mentions_from_channel(channel_path):
     '''
