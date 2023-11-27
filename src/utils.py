@@ -200,6 +200,37 @@ def get_user_mentions_from_channel(channel_path):
                  
     return channel_users_metions_count
 
+def get_message_mentions_count_from_channel(channel_path):
+    '''
+        get message mentions count of users from a channel        
+    
+    '''
+    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+
+    channel_message_metions_count = {} 
+
+    for msgs in combined:
+        pass
+        # print(msgs.keys())
+        # message = get_messages_dict(msgs)
+        # print(message["msg_id"])
+        # for mentions in message["mentions"]:
+        #     if mentions != None:
+        #         for user_id in mentions:
+        #             if user_id != None:
+        #                 pass
+                        # channel_users_metions_count[user_id] = channel_users_metions_count.get(user_id, 0) + 1
+                 
+    return channel_message_metions_count
+
+
 def get_user_message_count_from_channel(channel_path):
     '''
         get messages count of users from a channel        

@@ -103,14 +103,10 @@ class SlackDataLoader:
 
         # loop through all json files and extract required informations
         dflist = []
-        count = 20
         channel_users_replay_count = {}
 
         for slack_data in combined:
-            count -= 1
-            if not count:
-                break
-
+          
             msg_type, msg_content, sender_id, time_msg, msg_dist, time_thread_st, reply_users, \
             reply_count, reply_users_count, tm_thread_end = [],[],[],[],[],[],[],[],[],[]
             
@@ -205,14 +201,12 @@ class SlackDataLoader:
 
         json_files = [f"{path}/{pos_json}" for pos_json in os.listdir(path) if pos_json.endswith('.json')]
         combined = []
-        print(path)
 
         for json_file in json_files:
             with open(json_file, 'r', encoding="utf8") as slack_data:
                 json_content = json.load(slack_data)
                 combined.append(json_content)
         
-        print(combined)
 
         combined = []
         comm_dict = {}
