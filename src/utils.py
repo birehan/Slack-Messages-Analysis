@@ -229,7 +229,20 @@ def process_msgs(msg):
 
     return msg_list, rply_list
 
-  # combine all json file in all-weeks8-9
+
+def process_message(msg):
+    '''
+    select important columns from the message
+    '''
+
+    keys = [ "text", "ts"]
+    msg_list = {k:msg[k] for k in keys}
+    rply_list = from_msg_get_replies(msg)
+    # print(msg_list)
+
+    return msg_list, rply_list
+
+
 
 
 def user_reply_count_on_channel(path_channel):
@@ -268,7 +281,7 @@ def user_reply_count_on_channel(path_channel):
 
 
 
-def get_channel_messages_replies(channel_path):
+def get_channel_messages_replies_timestamp(channel_path):
 
     json_files = [
         f"{channel_path}/{pos_json}" 
@@ -571,3 +584,31 @@ def get_all_events_timestamp_on_channel(channel_path):
     channel_events_time_stamp = get_timestamps_from_messages(combined)
                  
     return channel_events_time_stamp
+
+def get_messages_on_channel(channel_path):
+
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+    messages = []
+
+    for msg in combined:
+        msg_list, _ = process_message(msg)
+        messages.append(msg_list)
+
+     
+    return messages
+
+
+
+
+# process_msgs
