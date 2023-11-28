@@ -9,6 +9,7 @@ from datetime import datetime
 from time import sleep
 
 import pandas as pd
+
 # from pick import pick
 
 
@@ -59,12 +60,72 @@ class SlackDataLoader:
         return channels
 
     def get_channel_messages(self, channel_name):
+        
         '''
         write a function to get all the messages from a channel
         
         '''
 
-    # 
+        messages = []
+        base_path = "../data/" + channel_name
+
+        json_files = [
+        f"{base_path}/{pos_json}" 
+        for pos_json in os.listdir(base_path) 
+        if pos_json.endswith('.json')
+        ]    
+
+        combined = []
+
+        for json_file in json_files:
+            with open(json_file, 'r', encoding="utf8") as slack_data:
+                json_content = json.load(slack_data)
+            combined.extend(json_content)
+        
+
+
+        for msg in combined:
+            if "subtype" not in msg:
+                text = msg.get("text", None)
+                ts = msg.get("ts", None)
+
+                messages.append((text, ts))
+                
+        return messages
+
+    
+
+    def get_all_channels_messages(self):
+        messages = []
+        for channel in self.channels:
+            base_path = "../data/" + channel["name"]
+
+            json_files = [
+            f"{base_path}/{pos_json}" 
+            for pos_json in os.listdir(base_path) 
+            if pos_json.endswith('.json')
+            ]    
+
+            combined = []
+
+            for json_file in json_files:
+                with open(json_file, 'r', encoding="utf8") as slack_data:
+                    json_content = json.load(slack_data)
+                combined.extend(json_content)
+            
+
+
+            for msg in combined:
+                if "subtype" not in msg:
+                    text = msg.get("text", None)
+                    ts = msg.get("ts", None)
+
+                    messages.append((text, ts))
+            
+        
+        return messages
+            
+
     def get_user_map(self):
         '''
         write a function to get a map between user id and user name
