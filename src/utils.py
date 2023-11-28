@@ -11,6 +11,11 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from nltk.corpus import stopwords
 
+import random
+import string
+
+def generate_random_message_id(length=10):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 def break_combined_weeks(combined_weeks):
     """
@@ -43,6 +48,34 @@ def get_msgs_df_info(df):
     return msgs_count_dict, replies_count_dict, mentions_count_dict, links_count_dict
 
 
+
+def get_mentions_from_messages(msgs):
+    """
+    Extract user mentions from a list of Slack messages.
+
+    Args:
+        msgs (list): List of Slack messages.
+
+    Returns:
+        list: List of lists, each containing user IDs mentioned in a message.
+    """
+    mentions_list = []
+
+    for msg in msgs:
+        if "subtype" not in msg and "blocks" in msg:
+            mention_list = []
+
+            for blk in msg["blocks"]:
+                if "elements" in blk:
+                    for elm in blk["elements"]:
+                        if "elements" in elm:
+                            for elm_ in elm["elements"]:
+                                if "type" in elm_ and elm_["type"] == "user":
+                                    mention_list.append(elm_["user_id"])
+
+            mentions_list.append(mention_list)
+
+    return mentions_list
 
 def get_messages_dict(msgs):
     msg_list = {
@@ -124,6 +157,46 @@ def get_messages_dict(msgs):
     
     return msg_list
 
+
+def get_mention_count_from_messages(msgs):
+    """
+    Extract user mentions from a list of Slack messages.
+
+    Args:
+        msgs (list): List of Slack messages.
+
+    Returns:
+        list: List of dictionaries, each containing message ID, text, and mentions count.
+    """
+    mentions_list = []
+
+    for msg in msgs:
+        if "subtype" not in msg and "blocks" in msg:
+            mention_list = []
+
+            for blk in msg["blocks"]:
+                if "elements" in blk:
+                    for elm in blk["elements"]:
+                        if "elements" in elm:
+                            for elm_ in elm["elements"]:
+                                if "type" in elm_ and elm_["type"] == "user":
+                                    mention_list.append(elm_["user_id"])
+
+            message_id = msg.get("client_msg_id", generate_random_message_id())
+            text = msg.get("text", "")
+
+            message_data = {
+                "message_id": message_id,
+                "text": text,
+                "mentions_count": len(mention_list),
+            }
+
+            
+            mentions_list.append(message_data)
+
+    return mentions_list
+
+
 def from_msg_get_replies(msg):
     replies = []
     if "thread_ts" in msg and "replies" in msg:
@@ -153,12 +226,52 @@ def process_msgs(msg):
 
     return msg_list, rply_list
 
+  # combine all json file in all-weeks8-9
+
+
+def user_reply_count_on_channel(path_channel):
+    """
+    Count the number of replies from each user in a Slack channel based on JSON data.
+
+    Args:
+        path_channel (str): The path to the directory containing Slack JSON files.
+
+    Returns:
+        dict: A dictionary mapping user IDs to their reply count.
+    """
+    json_files = [
+        f"{path_channel}/{pos_json}" 
+        for pos_json in os.listdir(path_channel) 
+        if pos_json.endswith('.json')
+    ]    
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+
+    channel_users_reply_count = {}
+
+    for row in combined:
+        if 'bot_id' in row.keys():
+            continue
+        elif 'reply_users' in row.keys():
+            for user_id in row["reply_users"]:
+                channel_users_reply_count[user_id] = channel_users_reply_count.get(user_id, 0) + 1
+
+    return channel_users_reply_count
+
 def get_messages_from_channel(channel_path):
     '''
     get all the messages from a channel        
     
     '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]    
     combined = []
 
     for json_file in json_files:
@@ -173,12 +286,23 @@ def get_messages_from_channel(channel_path):
     print(f"Number of messages in channel: {len(df)}")
     return df
 
-def get_messages_replay_timestamp_from_channel(channel_path):
-    '''
-    get all the messages timestamp of message and replay from a channel        
-    
-    '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+
+def get_messages_reply_timestamp_from_channel(channel_path):
+    """
+    Get timestamps of messages along with their latest reply timestamps from a Slack channel.
+
+    Args:
+        channel_path (str): The path to the directory containing Slack JSON files for the channel.
+
+    Returns:
+        tuple: A tuple containing a list of message timestamps along with their latest reply timestamps
+               and the count of messages with no replies.
+    """
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]     
     combined = []
 
     for json_file in json_files:
@@ -187,46 +311,61 @@ def get_messages_replay_timestamp_from_channel(channel_path):
             combined.extend(json_content)
     
     message_time_stamps = []
+    no_reply_messages_count = 0
+
     for msgs in combined:
         if "latest_reply" in msgs:
             message_time_stamps.append([msgs["ts"], msgs["latest_reply"]])
+        else:
+            no_reply_messages_count += 1
 
-    return message_time_stamps
-
-
+    return message_time_stamps, no_reply_messages_count
 
 def get_user_mentions_from_channel(channel_path):
-    '''
-        get metions count of users from a channel        
-    
-    '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
-    combined = []
+    """
+    Get mentions count of users from a Slack channel.
+
+    Args:
+        channel_path (str): The path to the directory containing Slack JSON files for the channel.
+
+    Returns:
+        dict: A dictionary mapping user IDs to their mentions count.
+    """
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
+    channel_users_mentions_count = {}
 
     for json_file in json_files:
         with open(json_file, 'r', encoding="utf8") as slack_data:
             json_content = json.load(slack_data)
-            combined.append(json_content)
-    
 
-    channel_users_metions_count = {}
-
-    for msgs in combined:
-        message = get_messages_dict(msgs)
-        for mentions in message["mentions"]:
-            if mentions != None:
+            mentions_list = get_mentions_from_messages(json_content)
+            for mentions in mentions_list:
                 for user_id in mentions:
-                    if user_id != None:
-                        channel_users_metions_count[user_id] = channel_users_metions_count.get(user_id, 0) + 1
-                 
-    return channel_users_metions_count
+                    if user_id:
+                        channel_users_mentions_count[user_id] = channel_users_mentions_count.get(user_id, 0) + 1
+
+    return channel_users_mentions_count
 
 def get_message_mentions_count_from_channel(channel_path):
-    '''
-        get message mentions count of users from a channel        
-    
-    '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    """
+    Get messages with their count of mentions from a Slack channel.
+
+    Args:
+        channel_path (str): The path to the directory containing Slack JSON files for the channel.
+
+    Returns:
+        list: List of dictionaries, each containing message ID, text, and mentions count.
+    """
+     
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
     combined = []
 
     for json_file in json_files:
@@ -235,76 +374,73 @@ def get_message_mentions_count_from_channel(channel_path):
             combined.extend(json_content)
     
 
-    channel_message_metions_count = {} 
-
-    for msgs in combined:
-        pass
-        # print(msgs.keys())
-        # message = get_messages_dict(msgs)
-        # print(message["msg_id"])
-        # for mentions in message["mentions"]:
-        #     if mentions != None:
-        #         for user_id in mentions:
-        #             if user_id != None:
-        #                 pass
-                        # channel_users_metions_count[user_id] = channel_users_metions_count.get(user_id, 0) + 1
+    channel_message_metions_count = []
+    channel_message_metions_count = get_mention_count_from_messages(combined)
                  
     return channel_message_metions_count
 
-
 def get_user_message_count_from_channel(channel_path):
-    '''
-        get messages count of users from a channel        
-    
-    '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    """
+    Get message count of users from a Slack channel.
+
+    Args:
+        channel_path (str): The path to the directory containing Slack JSON files for the channel.
+
+    Returns:
+        dict: A dictionary mapping user IDs to their message count.
+    """
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
     combined = []
 
     for json_file in json_files:
         with open(json_file, 'r', encoding="utf8") as slack_data:
             json_content = json.load(slack_data)
             combined.extend(json_content)
-    
 
     channel_users_message_count = {}
 
     for msgs in combined:
         user_id = msgs["user"]
         channel_users_message_count[user_id] = channel_users_message_count.get(user_id, 0) + 1
-                 
+
     return channel_users_message_count
 
 
 def get_user_reaction_count_from_channel(channel_path):
-    '''
-        get metions count of users from a channel        
-    
-    '''
-    json_files = [f"{channel_path}/{pos_json}" for pos_json in os.listdir(channel_path) if pos_json.endswith('.json')]
+    """
+    Get the count of reactions per user from a Slack channel.
+
+    Args:
+        channel_path (str): The path to the directory containing Slack JSON files for the channel.
+
+    Returns:
+        dict: A dictionary mapping user IDs to their reaction count.
+    """
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
     combined = []
 
     for json_file in json_files:
         with open(json_file, 'r', encoding="utf8") as slack_data:
             json_content = json.load(slack_data)
-            combined.append(json_content)
-    
+            combined.extend(json_content)
 
     channel_users_reactions_count = {}
 
-    for msgs in combined:
-        message = get_messages_dict(msgs)
+    for msg in combined:
+        if "subtype" not in msg and "reactions" in msg:
+            for reaction in msg["reactions"]:
+                for user_id in reaction["users"]:
+                    channel_users_reactions_count[user_id] = channel_users_reactions_count.get(user_id, 0) + 1
 
-        for reactions in message["reactions"]:
-            if reactions != None:
-                for users in reactions:
-                    if users != None:
-                        for user_id in users["users"]:
-                            if user_id != None:
-                                channel_users_reactions_count[user_id] = channel_users_reactions_count.get(user_id, 0) + 1
-                 
     return channel_users_reactions_count
-
-
 
 def convert_2_timestamp(column, data):
     """convert from unix time to readable timestamp

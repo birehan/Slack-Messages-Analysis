@@ -74,7 +74,8 @@ class SlackDataLoader:
         for user in self.users:
             userNamesById[user['id']] = user['name']
             userIdsByName[user['name']] = user['id']
-        return userNamesById, userIdsByName     
+        return userNamesById, userIdsByName
+
     
      # combine all json file in all-weeks8-9
     def slack_parser(self, path_channel):
@@ -103,7 +104,6 @@ class SlackDataLoader:
 
         # loop through all json files and extract required informations
         dflist = []
-        channel_users_replay_count = {}
 
         for slack_data in combined:
           
@@ -127,10 +127,7 @@ class SlackDataLoader:
                     else:
                         time_thread_st.append(0)
                     if 'reply_users' in row.keys():
-                        for user_id in row["reply_users"]:
-                            channel_users_replay_count[user_id] = channel_users_replay_count.get(user_id, 0) + 1
-                        reply_users.append(",".join(row['reply_users']))
-                        
+                        reply_users.append(",".join(row['reply_users']))                        
                     else:    
                         reply_users.append(0)
                     if 'reply_count' in row.keys():
@@ -159,7 +156,7 @@ class SlackDataLoader:
         dfall['channel'] = path_channel.split('/')[-1].split('.')[0]        
         dfall = dfall.reset_index(drop=True)
         
-        return dfall, channel_users_replay_count
+        return dfall
 
 
     def parse_slack_reaction(self, path, channel):
