@@ -9,7 +9,7 @@ from datetime import datetime
 from time import sleep
 
 import pandas as pd
-from pick import pick
+# from pick import pick
 
 
 # Create wrapper classes for using slack_sdk in place of slacker
