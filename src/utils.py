@@ -2,7 +2,9 @@ import datetime
 import glob
 import json
 import os
+import random
 import re
+import string
 import sys
 from collections import Counter
 
@@ -11,8 +13,6 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from nltk.corpus import stopwords
 
-import random
-import string
 
 def generate_random_message_id(length=10):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -76,6 +76,9 @@ def get_mentions_from_messages(msgs):
             mentions_list.append(mention_list)
 
     return mentions_list
+
+
+
 
 def get_messages_dict(msgs):
     msg_list = {
@@ -226,7 +229,20 @@ def process_msgs(msg):
 
     return msg_list, rply_list
 
-  # combine all json file in all-weeks8-9
+
+def process_message(msg):
+    '''
+    select important columns from the message
+    '''
+
+    keys = [ "text", "ts"]
+    msg_list = {k:msg[k] for k in keys}
+    rply_list = from_msg_get_replies(msg)
+    # print(msg_list)
+
+    return msg_list, rply_list
+
+
 
 
 def user_reply_count_on_channel(path_channel):
@@ -239,6 +255,7 @@ def user_reply_count_on_channel(path_channel):
     Returns:
         dict: A dictionary mapping user IDs to their reply count.
     """
+
     json_files = [
         f"{path_channel}/{pos_json}" 
         for pos_json in os.listdir(path_channel) 
@@ -261,6 +278,36 @@ def user_reply_count_on_channel(path_channel):
                 channel_users_reply_count[user_id] = channel_users_reply_count.get(user_id, 0) + 1
 
     return channel_users_reply_count
+
+
+
+def get_channel_messages_replies_timestamp(channel_path):
+
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]   
+
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+    reply_timestamps = []
+
+    for msg in combined:    
+        msg_reply = from_msg_get_replies(msg) 
+        if msg_reply: 
+            reply_timestamps.append(msg_reply)
+
+
+    return reply_timestamps
+
+
+
 
 def get_messages_from_channel(channel_path):
     '''
@@ -498,3 +545,70 @@ def map_userid_2_realname(user_profile: dict, comm_dict: dict, plot=False):
         plt.title('Student based on Message sent in thread', size=20)
         
     return ac_comm_dict
+
+
+def extract_timestamps(msg):
+    timestamps = [msg["ts"]]
+        
+
+    if "thread_ts" in msg and "replies" in msg:
+        for reply in msg["replies"]:
+            timestamps.append(reply["ts"])
+
+    return timestamps
+
+def get_timestamps_from_messages(msgs):
+    all_timestamps = []
+
+    for msg in msgs:
+        if "subtype" not in msg:
+            timestamps = extract_timestamps(msg)
+            all_timestamps.extend(timestamps)
+
+    return all_timestamps
+
+def get_all_events_timestamp_on_channel(channel_path):
+
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+    channel_events_time_stamp = get_timestamps_from_messages(combined)
+                 
+    return channel_events_time_stamp
+
+def get_messages_on_channel(channel_path):
+
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+    
+    messages = []
+
+    for msg in combined:
+        msg_list, _ = process_message(msg)
+        messages.append(msg_list)
+
+     
+    return messages
+
+
+
+
+# process_msgs
