@@ -6,12 +6,18 @@ import random
 import re
 import string
 import sys
+import uuid
 from collections import Counter
 
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from nltk.corpus import stopwords
+
+
+def my_func(l=10):
+
+    print("hello birehan")
 
 
 def generate_random_message_id(length=10):
@@ -84,7 +90,6 @@ def get_messages_dict(msgs):
     msg_list = {
             "msg_id":[],
             "text":[],
-            "attachments":[],
             "user":[],
             "mentions":[],
             "emojis":[],
@@ -112,7 +117,10 @@ def get_messages_dict(msgs):
             if "reactions" in msg:
                 msg_list["reactions"].append(msg["reactions"])
             else:
-                msg_list["reactions"].append(None)
+                random_id = str(uuid.uuid4())
+                msg_list["reactions"].append(random_id)
+
+                # msg_list["reactions"].append(None)
 
             if "parent_user_id" in msg:
                 msg_list["replies_to"].append(msg["ts"])
@@ -214,6 +222,9 @@ def from_msg_get_replies(msg):
 
 def msgs_to_df(msgs):
     msg_list = get_messages_dict(msgs)
+
+   
+  
     df = pd.DataFrame(msg_list)
     return df
 
@@ -238,7 +249,6 @@ def process_message(msg):
     keys = [ "text", "ts"]
     msg_list = {k:msg[k] for k in keys}
     rply_list = from_msg_get_replies(msg)
-    # print(msg_list)
 
     return msg_list, rply_list
 
@@ -324,14 +334,13 @@ def get_messages_from_channel(channel_path):
     for json_file in json_files:
         with open(json_file, 'r', encoding="utf8") as slack_data:
             json_content = json.load(slack_data)
-            combined.append(json_content)
+            combined.extend(json_content)
+        
+    msg_list = get_messages_dict(combined)
+    df = pd.DataFrame(msg_list)
     
-
-
-    df = pd.concat([pd.DataFrame(get_messages_dict(msgs)) for msgs in combined])
-
-    print(f"Number of messages in channel: {len(df)}")
     return df
+    
 
 
 def get_messages_reply_timestamp_from_channel(channel_path):
