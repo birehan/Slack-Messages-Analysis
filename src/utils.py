@@ -10,14 +10,48 @@ import uuid
 from collections import Counter
 
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 
 
-def my_func(l=10):
+def preprocess_text(text):
+    # Extract and remove URLs
+    urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+    for url in urls:
+        text = text.replace(url, '')
 
-    print("hello birehan")
+    text = re.sub(r'<@.*?>', '', text)
+
+    # Convert to lowercase
+    text = text.lower()
+
+    # Remove punctuation
+    text = ''.join([char for char in text if char not in string.punctuation])
+
+    # Remove numbers
+    text = re.sub(r'\d+', '', text)
+
+    # Tokenize
+    tokens = word_tokenize(text)
+
+    # Remove stop words
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words]
+
+    # Perform stemming
+    stemmer = PorterStemmer()
+    tokens = [stemmer.stem(word) for word in tokens]
+
+    # Perform lemmatization
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+
+    # Join the tokens back into a string
+    text = ' '.join(tokens)
+
+    return text
 
 
 def generate_random_message_id(length=10):
@@ -619,5 +653,103 @@ def get_messages_on_channel(channel_path):
 
 
 
+def get_messages_detail(msgs):
+    msg_list = {
+            "msg_id":[],
+            "text":[],
+            "user":[],
+            "mentions":[],
+            "reactions":[],
+            "replies":[],
+            "replies_to":[],
+            "ts":[],
+            "cleaned_text": []
+            }
 
-# process_msgs
+
+    for msg in msgs:
+        if "subtype" not in msg:
+            try:
+                msg_list["msg_id"].append(msg["client_msg_id"])
+            except:
+                msg_list["msg_id"].append(None)
+            msg_list["text"].append(msg["text"])
+            cleaned_text = preprocess_text(msg["text"])
+            msg_list["cleaned_text"].append(cleaned_text)
+
+            # if cleaned_text:
+            #     msg_list["cleaned_text"].append(cleaned_text)
+            # else:
+            #     msg_list["cleaned_text"].append(None)
+
+
+            msg_list["user"].append(msg["user"])
+            msg_list["ts"].append(msg["ts"])
+
+            
+            if "reactions" in msg:
+                msg_list["reactions"].append(msg["reactions"])
+            else:
+
+                msg_list["reactions"].append(None)
+
+            if "parent_user_id" in msg:
+                msg_list["replies_to"].append(msg["ts"])
+            else:
+                msg_list["replies_to"].append(None)
+
+            if "thread_ts" in msg and "reply_users" in msg:
+                msg_replies = []
+                for reply_user in msg["replies"]:
+                    msg_replies.append({"user_id": reply_user["user"], "ts": reply_user["ts"]})
+                    
+                msg_list["replies"].append(msg_replies)
+            else:
+                msg_list["replies"].append(None)
+            
+            if "blocks" in msg:
+                mention_list = []
+                
+                for blk in msg["blocks"]:
+                    if "elements" in blk:
+                        for elm in blk["elements"]:
+                            if "elements" in elm:
+                                for elm_ in elm["elements"]:
+                                    
+                                    if "type" in elm_:
+                                      
+                                        if elm_["type"] == "user":
+                                            mention_list.append(elm_["user_id"])
+                                       
+
+
+                msg_list["mentions"].append(mention_list)
+            else:
+                msg_list["mentions"].append(None)
+    
+    return msg_list
+
+
+
+def get_messages__detail_from_channel(channel_path):
+    '''
+    get all the messages from a channel        
+    
+    '''
+    json_files = [
+        f"{channel_path}/{pos_json}" 
+        for pos_json in os.listdir(channel_path) 
+        if pos_json.endswith('.json')
+    ]    
+    combined = []
+
+    for json_file in json_files:
+        with open(json_file, 'r', encoding="utf8") as slack_data:
+            json_content = json.load(slack_data)
+            combined.extend(json_content)
+        
+    msg_list = get_messages_detail(combined)
+    df = pd.DataFrame(msg_list)
+    
+    return df
+
