@@ -1,11 +1,4 @@
-import re
-import string
 import uuid
-
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
 from .loader import SlackDataLoader
 from .utils import get_messages__detail_from_channel
 
