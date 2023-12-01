@@ -1,21 +1,12 @@
 import os
 import sys
 
+# Import your analysis module
+import analysis_queries as analysis
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import streamlit as st
-
-rpath = os.path.abspath('..')
-if rpath not in sys.path:
-    sys.path.insert(0, rpath)
-
-# import src.data_analysis as analysis
-import dashboard.analysis_queries as analysis
-
-# st.set_page_config(page_title="Slack Data Analysis", page_icon=":tada:", layout="wide")
-
-st.set_page_config(page_title="Slack Data Analysis", page_icon=":tada:", layout="wide", initial_sidebar_state="collapsed")
 
 # Add a little margin to the layout
 st.markdown(
@@ -24,264 +15,110 @@ st.markdown(
         .main {
             padding: 20px;
         }
+        .sidebar {
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #d3d3d3;
+        }
+        .sidebar-item {
+            margin-bottom: 10px;
+        }
+        .st-emotion-cache-13ejsyy{
+             width: 100%;
+          }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+# Define the sections of your dashboard
+sections = ["Top 10 Users by Reply Count", "Bottom 10 Users by Reply Count",
+            "Top 10 Users by Mention Count", "Bottom 10 Users by Mention Count",
+            "Top 10 Users by Message Count", "Bottom 10 Users by Message Count",
+            "Top 10 Users by Reaction Count", "Bottom 10 Users by Reaction Count",
+            "Top 10 Messages by Reply Count", "Top 10 Messages by Mention Count",
+            "Top 10 Messages by Reaction Count", "Channel Statistics", "Message Reply Analysis"]
+
+# Sidebar menu as buttons
+st.sidebar.header("User Engagement Analysis")
+button1 = st.sidebar.button("Top 10 Users by Reply Count")
+button2 = st.sidebar.button("Bottom 10 Users by Reply Count")
+button3 = st.sidebar.button("Top 10 Users by Mention Count")
+button4 = st.sidebar.button("Bottom 10 Users by Mention Count")
+button5 = st.sidebar.button("Top 10 Users by Message Count")
+button6 = st.sidebar.button("Bottom 10 Users by Message Count")
+button7 = st.sidebar.button("Top 10 Users by Reaction Count")
+button8 = st.sidebar.button("Bottom 10 Users by Reaction Count")
+st.sidebar.header("Message Analysis")
+button9 = st.sidebar.button("Top 10 Messages by Reply Count")
+button10 = st.sidebar.button("Top 10 Messages by Mention Count")
+button11 = st.sidebar.button("Top 10 Messages by Reaction Count")
+
+st.sidebar.header("Channel Activity Analysis")
+button12 = st.sidebar.button("Channel Statistics")
+
+st.sidebar.header("Message Replies Time Analysis")
+button13 = st.sidebar.button("Message Reply Analysis")
+
+# Main content
 st.title("Slack Message Analysis Dashboard")
-st.text('Channel Members Analysis')
+st.text("Explore various metrics and statistics on messages and user engagement")
 
 
-
-# Call the function from the notebook to get top and bottom users
-top_ten_reply_users, bottom_ten_reply_users =  analysis.top_and_bottom_users_reply_count()   
-
-container = st.container()
-
-with container:
-
-    top_container = st.container()
-
-    with top_container:
-        # Create two columns within the container
-        top_table_col, top_chart_col = st.columns(2)
-
-        # Display top users table in the first column
-        with top_table_col:
-            st.subheader("Table - Top 10 Users by Reply Count")
-            st.table(top_ten_reply_users)
-
-
-        with top_chart_col:
-            st.subheader("Bar Chart - Top 10 Users by Reply Count")
-            st.bar_chart(top_ten_reply_users.set_index("real_name")["reply_count"])
-
-    # Container for Bottom 10 Users
-    bottom_container = st.container()
-
-    # Display bottom users table and bar chart in the same row
-    with bottom_container:
-        # Create two columns within the container
-        bottom_table_col, bottom_chart_col = st.columns(2)
-
-        # Display bottom users table in the first column
-        with bottom_table_col:
-            st.subheader("Table - Bottom 10 Users by Reply Count")
-            st.table(bottom_ten_reply_users)
-
-        # Display bar chart for bottom users in the second column
-        with bottom_chart_col:
-            st.subheader("Bar Chart - Bottom 10 Users by Reply Count")
-            st.bar_chart(bottom_ten_reply_users.set_index("real_name")["reply_count"])
-
-
+# Call the function from the notebook to get top and bottom users by reply count
+top_ten_reply_users, bottom_ten_reply_users = analysis.top_and_bottom_users_reply_count()
 
 # Call the function from the notebook to get top and bottom users by mention count
 top_ten_mention_users, bottom_ten_mention_users = analysis.top_and_bottom_users_mention_count()
 
-# Container for Mention Count
-mention_container = st.container()
-
-with mention_container:
-    # Create two columns within the container
-    mention_table_col, mention_chart_col = st.columns(2)
-
-    # Display top users table in the first column
-    with mention_table_col:
-        st.subheader("Table - Top 10 Users by Mention Count")
-        st.table(top_ten_mention_users)
-
-    # Display bar chart for top users in the second column
-    with mention_chart_col:
-        st.subheader("Bar Chart - Top 10 Users by Mention Count")
-        st.bar_chart(top_ten_mention_users.set_index("real_name")["mention_count"])
-
-# Container for Bottom 10 Users by Mention Count
-bottom_mention_container = st.container()
-
-# Display bottom users table and bar chart in the same row
-with bottom_mention_container:
-    # Create two columns within the container
-    bottom_mention_table_col, bottom_mention_chart_col = st.columns(2)
-
-    # Display bottom users table in the first column
-    with bottom_mention_table_col:
-        st.subheader("Table - Bottom 10 Users by Mention Count")
-        st.table(bottom_ten_mention_users)
-
-    # Display bar chart for bottom users in the second column
-    with bottom_mention_chart_col:
-        st.subheader("Bar Chart - Bottom 10 Users by Mention Count")
-        st.bar_chart(bottom_ten_mention_users.set_index("real_name")["mention_count"])
-
-
 # Call the function from the notebook to get top and bottom users by message count
 top_ten_message_users, bottom_ten_message_users = analysis.top_and_bottom_users_message_count()
 
-# Container for Message Count
-message_container = st.container()
-
-with message_container:
-    # Create two columns within the container
-    message_table_col, message_chart_col = st.columns(2)
-
-    # Display top users table in the first column
-    with message_table_col:
-        st.subheader("Table - Top 10 Users by Message Count")
-        st.table(top_ten_message_users)
-
-    # Display bar chart for top users in the second column
-    with message_chart_col:
-        st.subheader("Bar Chart - Top 10 Users by Message Count")
-        st.bar_chart(top_ten_message_users.set_index("real_name")["message_count"])
-
-# Container for Bottom 10 Users by Message Count
-bottom_message_container = st.container()
-
-# Display bottom users table and bar chart in the same row
-with bottom_message_container:
-    # Create two columns within the container
-    bottom_message_table_col, bottom_message_chart_col = st.columns(2)
-
-    # Display bottom users table in the first column
-    with bottom_message_table_col:
-        st.subheader("Table - Bottom 10 Users by Message Count")
-        st.table(bottom_ten_message_users)
-
-    # Display bar chart for bottom users in the second column
-    with bottom_message_chart_col:
-        st.subheader("Bar Chart - Bottom 10 Users by Message Count")
-        st.bar_chart(bottom_ten_message_users.set_index("real_name")["message_count"])
-
-
-# Call the function to get top and bottom users by reaction count
+# Call the function from the notebook to get top and bottom users by reaction count
 top_ten_reaction_users, bottom_ten_reaction_users = analysis.top_and_bottom_users_reaction_count()
 
-# Container for Reaction Count
-reaction_container = st.container()
+# Call the function from the notebook to get top messages by reply count, mention count, and reaction count
+top_messages_by_reply_count= analysis.top_10_messages_by_replies()
+top_messages_by_mention_count= analysis.top_10_messages_by_mentions()
+top_messages_by_reaction_count = analysis.top_10_messages_by_reactions()
 
-with reaction_container:
-    # Create two columns within the container
-    reaction_table_col, reaction_chart_col = st.columns(2)
-
-    # Display top users table in the first column
-    with reaction_table_col:
-        st.subheader("Table - Top 10 Users by Reaction Count")
-        st.table(top_ten_reaction_users)
-
-    # Display bar chart for top users in the second column
-    with reaction_chart_col:
-        st.subheader("Bar Chart - Top 10 Users by Reaction Count")
-        st.bar_chart(top_ten_reaction_users.set_index("real_name")["reaction_count"])
-
-# Container for Bottom 10 Users by Reaction Count
-bottom_reaction_container = st.container()
-
-# Display bottom users table and bar chart in the same row
-with bottom_reaction_container:
-    # Create two columns within the container
-    bottom_reaction_table_col, bottom_reaction_chart_col = st.columns(2)
-
-    # Display bottom users table in the first column
-    with bottom_reaction_table_col:
-        st.subheader("Table - Bottom 10 Users by Reaction Count")
-        st.table(bottom_ten_reaction_users)
-
-    # Display bar chart for bottom users in the second column
-    with bottom_reaction_chart_col:
-        st.subheader("Bar Chart - Bottom 10 Users by Reaction Count")
-        st.bar_chart(bottom_ten_reaction_users.set_index("real_name")["reaction_count"])
+table = st.container()
+bar = st.container()
 
 
-# Call the function to get top 10 messages by replies
-top_10_messages_by_replies = analysis.top_10_messages_by_replies()
+# Function to generate content based on the selected button
+def generate_content(selected_button, count_col, users):
+    with table:
+        # Display top users table in the first column
+        st.subheader(f"Table - {selected_button}")
+        st.table(users)
 
-# Container for Top 10 Messages by Replies
-top_messages_by_replies_container = st.container()
+    with bar:
+        st.subheader(f"Bar Chart - {selected_button}")
+        st.bar_chart(users.set_index("real_name")[count_col])
 
-with top_messages_by_replies_container:
-    # Create two columns within the container
-    top_messages_table_col, top_messages_chart_col = st.columns(2)
+# Function to generate content for top messages
+def generate_top_messages_content(selected_button, messages):
+    with table:
+        # Display top messages table
+        st.subheader(f"Table - {selected_button}")
+        st.table(messages)
 
-    # Display top messages table in the first column
-    with top_messages_table_col:
-        st.subheader("Table - Top 10 Messages by Replies")
-        st.table(top_10_messages_by_replies)
+# Function to generate content for channel statistics
+def generate_channel_statistics():
+    # Get channel statistics
+    channel_stats = analysis.get_channel_stats()
 
-    # Display bar chart for top messages in the second column
-    with top_messages_chart_col:
-        st.subheader("Bar Chart - Top 10 Messages by Replies")
-        st.bar_chart(top_10_messages_by_replies.set_index("ts")["reply_count"])
+    # Display scatter plot
+    st.subheader("Scatter Plot: Total Messages vs Replies + Reactions")
+    st.scatter_chart(channel_stats, x='channel_total_messages', y='replies_reactions_sum', color='channel_name')
 
+    # Determine the channel with the highest activity
+    most_active_channel = channel_stats.loc[channel_stats['channel_total_messages'].idxmax(), 'channel_name']
+    st.subheader(f"Channel with the Highest Activity: {most_active_channel}")
 
-# Call the function to get top 10 messages by reactions count
-top_10_messages_by_reactions = analysis.top_10_messages_by_reactions()
-
-# Container for Top 10 Messages by Reactions
-top_messages_by_reactions_container = st.container()
-
-with top_messages_by_reactions_container:
-    # Create two columns within the container
-    top_messages_table_col, top_messages_chart_col = st.columns(2)
-
-    # Display top messages table in the first column
-    with top_messages_table_col:
-        st.subheader("Table - Top 10 Messages by Reactions")
-        st.table(top_10_messages_by_reactions)
-
-    # Display bar chart for top messages in the second column
-    with top_messages_chart_col:
-        st.subheader("Bar Chart - Top 10 Messages by Reactions")
-        st.bar_chart(top_10_messages_by_reactions.set_index("ts")["reaction_count"])
-
-
-# Call the function to get top 10 messages by mentions
-top_10_messages_by_mentions = analysis.top_10_messages_by_mentions()
-
-# Function to limit characters in each cell
-def limit_characters(cell, limit=120):
-    return cell[:limit] + '...' if len(cell) > limit else cell
-
-# Apply the character limit to the relevant columns
-top_10_messages_by_mentions["text"] = top_10_messages_by_mentions["text"].apply(lambda x: limit_characters(x))
-
-# Container for Top 10 Messages by Mentions
-top_messages_by_mentions_container = st.container()
-
-with top_messages_by_mentions_container:
-    # Create two columns within the container
-    top_messages_mentions_table_col, top_messages_mentions_chart_col = st.columns(2)
-
-    # Display top messages table by mentions in the first column
-    with top_messages_mentions_table_col:
-        st.subheader("Table - Top 10 Messages by Mentions")
-        st.table(top_10_messages_by_mentions)
-
-    # Display bar chart for top messages by mentions in the second column
-    with top_messages_mentions_chart_col:
-        st.subheader("Bar Chart - Top 10 Messages by Mentions")
-        st.bar_chart(top_10_messages_by_mentions.set_index("ts")["mention_count"])
-
-
-# Get channel statistics
-channel_stats = analysis.get_channel_stats()
-
-# Streamlit dashboard
-st.title("Channel Statistics Dashboard")
-
-# Display scatter plot
-st.subheader("Scatter Plot: Total Messages vs Replies + Reactions")
-st.scatter_chart(channel_stats, x='channel_total_messages', y='replies_reactions_sum', color='channel_name')
-
-
-# Determine the channel with the highest activity
-most_active_channel = channel_stats.loc[channel_stats['channel_total_messages'].idxmax(), 'channel_name']
-st.subheader(f"Channel with the Highest Activity: {most_active_channel}")
-
-
-
-def plot_scatter():
+# Function to generate content for message reply analysis
+def generate_message_reply_analysis():
     # Get reply time differences
     df = analysis.get_reply_time_differences()
 
@@ -299,11 +136,56 @@ def plot_scatter():
         data=df,
         x='time_difference',
         y='time_of_day',
-        color='channel_id',
+        color='channel_name',
     )
 
     return scatter_chart
 
 
-st.title("Message Reply Analysis")
-plot_scatter()
+
+
+
+# Display content based on the selected button
+if button1:
+    generate_content("Top 10 Users by Reply Count", "reply_count", top_ten_reply_users)
+
+elif button2:
+    generate_content("Bottom 10 Users by Reply Count", "reply_count", bottom_ten_reply_users)
+
+elif button3:
+    generate_content("Top 10 Users by Mention Count", "mention_count", top_ten_mention_users)
+
+elif button4:
+    generate_content("Bottom 10 Users by Mention Count", "mention_count", bottom_ten_mention_users)
+
+elif button5:
+    generate_content("Top 10 Users by Message Count", "message_count", top_ten_message_users)
+
+elif button6:
+    generate_content("Bottom 10 Users by Message Count", "message_count", bottom_ten_message_users)
+
+elif button7:
+    generate_content("Top 10 Users by Reaction Count", "reaction_count", top_ten_reaction_users)
+
+elif button8:
+    generate_content("Bottom 10 Users by Reaction Count", "reaction_count", bottom_ten_reaction_users)
+
+elif button9:
+    generate_top_messages_content("Top 10 Messages by Reply Count", top_messages_by_reply_count)
+
+elif button10:
+    generate_top_messages_content("Top 10 Messages by Mention Count", top_messages_by_mention_count)
+
+elif button11:
+    generate_top_messages_content("Top 10 Messages by Reaction Count", top_messages_by_reaction_count)
+
+elif button12:
+    generate_channel_statistics()
+
+elif button13:
+    generate_message_reply_analysis()
+else:
+    generate_content("Top 10 Users by Reply Count", "reply_count", top_ten_reply_users)
+
+
+
