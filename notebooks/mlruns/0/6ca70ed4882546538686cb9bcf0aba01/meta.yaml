@@ -1,0 +1,15 @@
+artifact_uri: file:///home/babi/Desktop/10academy/Slack-Messages-Analysis/notebooks/mlruns/0/6ca70ed4882546538686cb9bcf0aba01/artifacts
+end_time: 1701417748760
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6ca70ed4882546538686cb9bcf0aba01
+run_name: delightful-gnu-276
+run_uuid: 6ca70ed4882546538686cb9bcf0aba01
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1701417742326
+status: 3
+tags: []
+user_id: babi
