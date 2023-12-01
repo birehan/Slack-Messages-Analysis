@@ -1,0 +1,15 @@
+artifact_uri: file:///home/babi/Desktop/10academy/Slack-Messages-Analysis/notebooks/mlruns/0/19f12968c59d41c695a659cbe840478b/artifacts
+end_time: 1701417515257
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 19f12968c59d41c695a659cbe840478b
+run_name: stately-gull-712
+run_uuid: 19f12968c59d41c695a659cbe840478b
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1701417503719
+status: 4
+tags: []
+user_id: babi

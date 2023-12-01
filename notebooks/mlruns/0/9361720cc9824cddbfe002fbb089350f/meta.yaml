@@ -1,0 +1,15 @@
+artifact_uri: file:///home/babi/Desktop/10academy/Slack-Messages-Analysis/notebooks/mlruns/0/9361720cc9824cddbfe002fbb089350f/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 9361720cc9824cddbfe002fbb089350f
+run_name: abrasive-smelt-868
+run_uuid: 9361720cc9824cddbfe002fbb089350f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1701417037216
+status: 1
+tags: []
+user_id: babi
