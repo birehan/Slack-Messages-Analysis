@@ -1,11 +1,5 @@
-import streamlit as st
-import subprocess
-
-# Run the pip install command
-subprocess.run(["pip", "install", "psycopg2-binary"])
-
 import analysis_queries as analysis
-
+import streamlit as st
 
 # Add a little margin to the layout
 st.markdown(
