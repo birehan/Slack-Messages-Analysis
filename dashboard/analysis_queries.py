@@ -3,19 +3,6 @@ import os
 import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
-from psycopg2 import sql
-from sqlalchemy import create_engine
-
-# Connection parameters
-# connection_params = {
-#     "host": "localhost",
-#     "user": "birehan",
-#     "password": "password",
-#     "port": "5432",
-#     "database": "slackdbs"
-# }
-
-
 
 # Load environment variables from .env file
 load_dotenv()
@@ -243,50 +230,6 @@ def get_channel_stats():
     conn.close()
 
     return df
-
-
-# def get_reply_time_differences():
-    # # Create a connection to PostgreSQL
-    # conn = psycopg2.connect(**connection_params)
-    # cursor = conn.cursor()
-
-    # # Query to get messages and their corresponding replies with Unix timestamp conversion
-    # query = """
-    #     SELECT
-    #         m.ts AS message_ts,
-    #         m.text AS message_text,
-    #         m.channel_id,
-    #         r.ts AS reply_ts
-    #     FROM
-    #         Messages m
-    #         LEFT JOIN Replies r ON m.ts = r.message_ts
-    #     WHERE
-    #         r.ts IS NOT NULL
-    #     ORDER BY
-    #         m.ts
-    # """
-
-    # # Execute the query and fetch the results into a Pandas DataFrame
-    # df = pd.read_sql_query(query, conn)
-
-    # # Close the cursor and connection
-    # cursor.close()
-    # conn.close()
-
-    # # Convert Unix timestamps to datetime objects
-    # df['message_ts'] = pd.to_datetime(df['message_ts'], unit='s')
-    # df['reply_ts'] = pd.to_datetime(df['reply_ts'], unit='s')
-
-    # # Compute time differences
-    # df['time_difference'] = (df['reply_ts'] - df['message_ts']).dt.total_seconds() / 60.0
-
-    # # Extract the time of the day in 24hr format
-    # df['time_of_day'] = df['message_ts'].dt.hour + df['message_ts'].dt.minute / 60.0
-
-    # return df
-
-# print(get_reply_time_differences().head())
-
 
 
 def get_reply_time_differences():
