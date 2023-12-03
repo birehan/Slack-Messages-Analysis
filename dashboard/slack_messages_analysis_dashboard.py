@@ -1,11 +1,4 @@
-import os
-import sys
-
-# Import your analysis module
 import analysis_queries as analysis
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 import streamlit as st
 
 # Add a little margin to the layout
