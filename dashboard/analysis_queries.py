@@ -1,15 +1,31 @@
+import os
+
 import pandas as pd
 import psycopg2
+from dotenv import load_dotenv
 from psycopg2 import sql
 from sqlalchemy import create_engine
 
 # Connection parameters
+# connection_params = {
+#     "host": "localhost",
+#     "user": "birehan",
+#     "password": "password",
+#     "port": "5432",
+#     "database": "slackdbs"
+# }
+
+
+
+# Load environment variables from .env file
+load_dotenv()
+
 connection_params = {
-    "host": "localhost",
-    "user": "birehan",
-    "password": "password",
-    "port": "5432",
-    "database": "slackdbs"
+    "host": os.getenv("DB_HOST"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "port": os.getenv("DB_PORT"),
+    "database": os.getenv("DB_DATABASE")
 }
 
 
