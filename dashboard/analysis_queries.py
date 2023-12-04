@@ -2,17 +2,14 @@ import os
 
 import pandas as pd
 import psycopg2
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+import streamlit as st
 
 connection_params = {
-    "host": os.getenv("DB_HOST"),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "port": os.getenv("DB_PORT"),
-    "database": os.getenv("DB_DATABASE")
+    "host": st.secrets["DB_HOST"],
+    "user": st.secrets["DB_USER"],
+    "password": st.secrets["DB_PASSWORD"],
+    "port": st.secrets["DB_PORT"],
+    "database": st.secrets["DB_DATABASE"]
 }
 
 
